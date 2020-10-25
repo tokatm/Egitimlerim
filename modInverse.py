@@ -17,9 +17,18 @@ sayi = list(range(26))
 
 
 def modInverse(x,m):
+   
     for i in sayi:
-        if (x*i%m == 1):
-           print("Result: " + str(i))
+        
+        k = x*i%m
+            
+        if k == 1:
+                   
+            print ("Result:--> ", i)
+    
+        else:
+        
+            print ("Resultless")    
     
 modInverse(x,m)
 
