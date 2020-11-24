@@ -28,8 +28,8 @@ def primitiveTest():
     for i in range(range1,range2):
         
         if prem (x**i + 1, x**power1 + x**power2 + 1, modulus = 2) == 0:
-            
-            print(i)
+            if i == 2**power1 - 1    
+                print(i)
 
         else:
             i + 1
