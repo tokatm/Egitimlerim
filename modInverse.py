@@ -13,7 +13,7 @@ Created on Sat Oct 24 14:33:35 2020
 
 x = int(input("the number you want to inverse: "))
 m = int(input("mod: "))
-sayi = list(range(26))
+sayi = list(range(m))
 
 
 def modInverse(x,m):
@@ -26,9 +26,9 @@ def modInverse(x,m):
                    
             print ("Result:--> ", i)
     
-        else:
+        #else:
         
-            print ("Resultless")    
+            #print ("Resultless")    
     
 modInverse(x,m)
 
