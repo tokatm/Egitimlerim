@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+
 """
 Created on Sat Oct 24 14:33:35 2020
 
@@ -25,12 +25,6 @@ def modInverse(x,m):
         if k == 1:
                    
             print ("Result:--> ", i)
-    
-          
-    
+
+
 modInverse(x,m)
-
-
-
-
-
