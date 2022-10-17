@@ -66,23 +66,7 @@ int yazdir(){
     return 1;
 }
 
-int sirala(data)
-{
-    
-    node * iter = (node *)malloc(sizeof(node));
-    while (iter -> next != NULL && iter -> next -> data < data)
-    {
-        iter = iter -> next;
-    }
 
-    node *temp = (node*) malloc(sizeof(node));
-    temp -> next = iter -> next;
-    iter -> next = temp;
-    temp -> data = data ;
-
-
-    
-}
 
 
 int main(){
