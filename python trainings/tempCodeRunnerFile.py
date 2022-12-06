@@ -1,0 +1,1 @@
+state = get_best_solution_by_distance(matrix, home)
