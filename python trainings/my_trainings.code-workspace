@@ -2,6 +2,10 @@
 	"folders": [
 		{
 			"path": ".."
+		},
+		{
+			"name": "simulated-annealing-tsp",
+			"path": "simulated-annealing-tsp"
 		}
 	],
 	"settings": {}

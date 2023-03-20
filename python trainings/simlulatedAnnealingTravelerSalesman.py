@@ -5,138 +5,98 @@ Created on Thu Mar 14 01:53:30 2019
 @author: Mustafa
 """
 
-# Import libraries
+
 import sys
 import copy
 import random
 import numpy as np
-# This class represent a state
 class State:
-    # Create a new state
-    def __init__(self, route:[], distance:int=0):
-        self.route = route
-        self.distance = distance
-    # Compare states
-    def __eq__(self, other):
-        for i in range(len(self.route)):
-            if(self.route[i] != other.route[i]):
+    def __init__(self, rota:[], mesafe:int=0):
+        self.rota = rota
+        self.mesafe = mesafe
+    def _karsilastir__(self, diger):
+        for i in range(len(self.rota)):
+            if(self.rota[i] != diger.rota[i]):
                 return False
         return True
-    # Sort states
     
-    # Print a state
-    
-
-    # Create a deep copy
     def deepcopy(self):
-        return State(copy.deepcopy(self.route), copy.deepcopy(self.distance))
-    # Update distance
-    def update_distance(self, matrix, home):
-        
-        # Reset distance
-        self.distance = 0
-        # Keep track of departing city
-        from_index = home
-        # Loop all cities in the current route
-        for i in range(len(self.route)):
-            self.distance += matrix[from_index][self.route[i]]
-            from_index = self.route[i]
-        # Add the distance back to home
-        self.distance += matrix[from_index][home]
-# This class represent a city (used when we need to delete cities)
-class City:
-    # Create a new city
-    def __init__(self, index:int, distance:int):
+        return State(copy.deepcopy(self.rota), copy.deepcopy(self.mesafe))
+
+    def guncelMesafe(self, matrix, baslangicNoktasi):
+     
+        self.mesafe = 0
+        basla = baslangicNoktasi
+        for i in range(len(self.rota)):
+            self.mesafe += matrix[basla][self.rota[i]]
+            basla = self.rota[i]
+        self.mesafe += matrix[basla][baslangicNoktasi]
+
+class Sehir:
+    def __init__(self, index:int, mesafe:int):
         self.index = index
-        self.distance = distance
-    # Sort cities
-    def __lt__(self, other):
-         return self.distance < other.distance
-# Return true with probability p
+        self.mesafe = mesafe
+    def __lt__(self, diger):
+         return self.mesafe < diger.mesafe
+
 def probability(p):
     return p > random.uniform(0.0, 0.1)
-# Schedule function for simulated annealing
-def exp_schedule(k=10, lam=0.01, limit=100):
+
+def exp_schedule(k=10, lam=0.01, limit=10000):
     return lambda t: (k * np.exp(-lam * t) if t < limit else 0)
 
-# Get best solution by distance
-def get_best_solution_by_distance(matrix:[], home:int):
+def ilkCozum(matrix:[], baslangicNoktasi:int):
     
-    # Variables
-    route = []
-    from_index = home
+    rota = []
+    basla = baslangicNoktasi
     length = len(matrix) - 1
-    # Loop until route is complete
-    while len(route) < length:
-         # Get a matrix row
-        row = matrix[from_index]
-        # Create a list with cities
-        cities = {}
-        for i in range(len(row)):
-            cities[i] = City(i, row[i])
-        # Remove cities that already is assigned to the route
-        del cities[home]
-        for i in route:
-            del cities[i]
-        # Sort cities
-        sorted = list(cities.values())
-        sorted.sort()
-        # Add the city with the shortest distance
-        from_index = sorted[0].index
-        route.append(from_index)
-    # Create a new state and update the distance
-    state = State(route)
-    state.update_distance(matrix, home)
-    # Return a state
+    while len(rota) < length:
+        satir = matrix[basla]
+        duraklar = {}
+        for i in range(len(satir)):
+            duraklar[i] = Sehir(i, satir[i])
+        del duraklar[baslangicNoktasi]
+        for i in rota:
+            del duraklar[i]
+        sirali = list(duraklar.values())
+        sirali.sort()
+        
+        basla = sirali[0].index
+        rota.append(basla)
+    state = State(rota)
+    state.guncelMesafe(matrix, baslangicNoktasi)
     return state
 
-# Mutate a solution
-def mutate(matrix:[], home:int, state:State, mutation_rate:float=0.01):
+def degisim(matrix:[], baslangicNoktasi:int, state:State, degisimOrani:float=0.01):
     
-    # Create a copy of the state
-    mutated_state = state.deepcopy()
-    # Loop all the states in a route
-    for i in range(len(mutated_state.route)):
-        # Check if we should do a mutation
-        if(random.random() < mutation_rate):
-            # Swap two cities
-            j = int(random.random() * len(state.route))
-            city_1 = mutated_state.route[i]
-            city_2 = mutated_state.route[j]
-            mutated_state.route[i] = city_2
-            mutated_state.route[j] = city_1
-    # Update the distance
-    mutated_state.update_distance(matrix, home)
-    # Return a mutated state
-    return mutated_state
-# Simulated annealing
-def simulated_annealing(matrix:[], home:int, 
-initial_state:State, mutation_rate:float=0.01, 
+    digerState = state.deepcopy()
+    for i in range(len(digerState.rota)):
+        if(random.random() < degisimOrani):
+            j = int(random.random() * len(state.rota))
+            Sehir_1 = digerState.rota[i]
+            Sehir_2 = digerState.rota[j]
+            digerState.rota[i] = Sehir_2
+            digerState.rota[j] = Sehir_1
+    digerState.guncelMesafe(matrix, baslangicNoktasi)
+    return digerState
+
+def simulated_annealing(matrix:[], baslangicNoktasi:int, 
+baslangicState:State, degisimOrani:float=0.01, 
 schedule=exp_schedule()):
-    # Keep track of the best state
-    best_state = initial_state
-    # Loop a large number of times (int.max)
+
+    eniyiState = baslangicState
     for t in range(sys.maxsize):
-        # Get a temperature
         T = schedule(t)
-        # Return if temperature is 0
         if T == 0:
-            return best_state
-        # Mutate the best state
-        neighbor = mutate(matrix, home, best_state, mutation_rate)
-        # Calculate the change in e
-        delta_e = best_state.distance - neighbor.distance
-        # Check if we should update the best state
+            return eniyiState
+        neighbor = degisim(matrix, baslangicNoktasi, eniyiState, degisimOrani)
+        delta_e = eniyiState.mesafe - neighbor.mesafe
         if delta_e > 0 or probability(np.exp(delta_e / T)):
-            best_state = neighbor
-# The main entry point for this module
+            eniyiState = neighbor
 def main():
-    # Cities to travel
-    cities = ["Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya", "Ankara", "Antalya", "Ardahan", "Artvin", "Aydın", "Balıkesir", "Bartın", "Batman", "Bayburt", "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli", "Diyarbakır", "Düzce", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkâri", "Hatay", "Iğdır", "Isparta", "İstanbul", "İzmir", "Kahramanmaraş", "Karabük", "Karaman", "Kars", "Kastamonu", "Kayseri", "Kilis", "Kırıkkale", "Kırklareli", "Kırşehir", "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Mardin", "Mersin", "Muğla", "Muş", "Nevşehir", "Niğde", "Ordu", "Osmaniye", "Rize", "Sakarya", "Samsun", "Şanlıurfa", "Siirt", "Sinop", "Sivas", "Şırnak", "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Uşak", "Van", "Yalova", "Yozgat", "Zonguldak"]
-   
-    # Index of start location
-    home = 39 
-    # Distances in miles between cities, same indexes (i, j) as in the cities array
+    duraklar = ["Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya", "Ankara", "Antalya", "Ardahan", "Artvin", "Aydın", "Balıkesir", "Bartın", "Batman", "Bayburt", "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli", "Diyarbakır", "Düzce", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkâri", "Hatay", "Iğdır", "Isparta", "İstanbul", "İzmir", "Kahramanmaraş", "Karabük", "Karaman", "Kars", "Kastamonu", "Kayseri", "Kilis", "Kırıkkale", "Kırklareli", "Kırşehir", "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Mardin", "Mersin", "Muğla", "Muş", "Nevşehir", "Niğde", "Ordu", "Osmaniye", "Rize", "Sakarya", "Samsun", "Şanlıurfa", "Siirt", "Sinop", "Sivas", "Şırnak", "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Uşak", "Van", "Yalova", "Yozgat", "Zonguldak"]
+    baslangicNoktasi = 39 
+    # mesafes in miles between duraklar, same indexes (i, j) as in the duraklar array
     matrix = [
                 [0,338,579,978,604,492,548,1005,881,903,786,633,746,689,649,857,1097,591,582,762,538,1183,496,677,809,691,216,720,780,910,196,619,69,951,908,1014,696,335,1160,377,841,358,676,397,887,198,549,858,743,288,210,708,918,803,754,721,868,428,1082,493,839,631,355,691,905,490,765,268,801,293,486,634,720,784,1039,1081,906,714,252,89,735],
                 [338,0,917,646,628,738,886,717,1219,1241,1039,348,414,927,987,1111,1390,769,704,1100,206,1421,284,548,522,959,151,706,678,655,317,957,407,1189,1246,727,875,421,1398,556,1079,696,1014,186,1224,163,295,1196,456,504,548,732,772,1041,757,390,883,413,1320,517,780,419,112,1029,573,619,1003,580,676,631,665,302,465,1022,751,750,1144,952,210,245,973],
@@ -224,15 +184,14 @@ def main():
         ]
     
     
-    # Run simulated annealing to find a better solution
-    state = get_best_solution_by_distance(matrix, home)
-    state = simulated_annealing(matrix, home, state, 0.1)
-    print('-- Simulated annealing solution --')
-    print(cities[home], end='')
-    for i in range(0, len(state.route)):
-       print(' -> ' + cities[state.route[i]], end='')
-    print(' -> ' + cities[home], end='')
-    print('\n\nTotal distance: {0} km'.format(state.distance))
+    state = ilkCozum(matrix, baslangicNoktasi)
+    state = simulated_annealing(matrix, baslangicNoktasi, state, 0.1)
+    print('-- Simulated annealing --')
+    print(duraklar[baslangicNoktasi], end='')
+    for i in range(0, len(state.rota)):
+       print(' -> ' + duraklar[state.rota[i]], end='')
+    print(' -> ' + duraklar[baslangicNoktasi], end='')
+    print('\n\nTotal mesafe: {0} km'.format(state.mesafe))
     print()
 
-main()
+if __name__ == "__main__": main()
